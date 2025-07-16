@@ -308,36 +308,38 @@
     
     <script>
     /**
-     * @file 標普500 AI 策略顧問 - 原型
-     * @description 這是一個用於標普500投資策略工具的單頁應用程式原型。
-     * 它在單一的HTML檔案中實現了多頁面的介面。
+     * @file S&P 500 AI Strategy Advisor - Prototype
+     * @description This is a single-page application prototype for an S&P 500 investment strategy tool.
+     * It features a multi-page interface within a single HTML file.
      *
-     * --- 核心功能 ---
-     * 1.  **儀表板**: 顯示關鍵市場信號、建議策略、由AI生成的市場焦點、回測績效圖表，以及可點擊的經濟指標卡片。
-     * 2.  **智能問答**: 一個由Gemini API驅動的互動式聊天機器人，用於回答投資相關問題。
-     * 3.  **模型預測**: 允許使用者輸入經濟參數，以模擬並視覺化未來標普500的趨勢（基於一個簡化模型）。
-     * 4.  **數據管理**: 以表格形式顯示底層的歷史數據，並允許上傳新的CSV數據。
-     * 5.  **報告中心**: 允許使用者將預測數據下載為CSV檔案，並生成PDF報告。
+     * --- Core Functionalities ---
+     * 1.  **Dashboard**: Displays key market signals, recommended strategies, AI-generated market focus,
+     * backtesting performance charts, and clickable cards for detailed economic indicators.
+     * 2.  **QA Robot**: An interactive chatbot powered by the Gemini API for investment-related questions.
+     * 3.  **Model Forecast**: Allows users to input economic parameters to simulate and visualize
+     * future S&P 500 trends based on a simplified model.
+     * 4.  **Data Management**: Shows the underlying historical data in a table and allows uploading new CSV data.
+     * 5.  **Reports**: Allows users to download forecast data as CSV and generate a PDF report.
      *
-     * --- 使用技術 ---
-     * -   **HTML5**: 用於基礎結構。
-     * -   **Tailwind CSS**: 用於所有樣式與版面設計。
-     * -   **JavaScript (ES6)**: 用於所有互動與邏輯。
-     * -   **Chart.js**: 用於數據視覺化圖表。
-     * -   **jsPDF & jsPDF-AutoTable**: 用於在客戶端生成PDF檔案。
-     * -   **Gemini API (透過 fetch)**: 用於生成AI驅動的內容。
+     * --- Technologies Used ---
+     * -   **HTML5**: For the basic structure.
+     * -   **Tailwind CSS**: For all styling and layout.
+     * -   **JavaScript (ES6)**: For all interactivity and logic.
+     * -   **Chart.js**: For data visualization.
+     * -   **jsPDF & jsPDF-AutoTable**: For client-side PDF generation.
+     * -   **Gemini API (via fetch)**: For generating AI-driven content.
      *
-     * --- 程式碼結構與函式 ---
-     * -   **全域變數**: 儲存如 `historicalData`、`latestForecastResults` 等狀態。
-     * -   **`DOMContentLoaded`**: 應用程式的主要進入點，設定頁面導航。
-     * -   **`navigateTo(hash)`**: 核心的單頁應用導航邏輯。
-     * -   **`init...()` 函式**: 為每個頁面進行延遲載入（Lazy-loading），設定事件監聽器與初始內容。
-     * -   **`createChart(...)`**: 一個重構的輔助函式，用於建立或更新Chart.js圖表實例。
-     * -   **`callGeminiAPI(...)`**: 一個重構的輔助函式，用於處理對Gemini API的`fetch`請求。
-     * -   **`showNotification(...)`**: 向使用者顯示短暫的回饋訊息。
-     * -   **`handleFileUpload(...)`**: 讀取並解析使用者上傳的CSV檔案。
-     * -   **`downloadCSV(...)`**: 將物件陣列轉換為CSV字串並觸發下載。
-     * -   **`generatePDFReport(...)`**: 將數據和圖表彙整成可下載的PDF文件。
+     * --- Code Structure & Functions ---
+     * -   **Global Variables**: Store state like `historicalData`, `latestForecastResults`, etc.
+     * -   **`DOMContentLoaded`**: The main entry point that sets up navigation.
+     * -   **`navigateTo(hash)`**: Core single-page navigation logic.
+     * -   **`init...()` functions**: Lazy-load event listeners and content for each page.
+     * -   **`createChart(...)`**: A helper function to create/update Chart.js instances.
+     * -   **`callGeminiAPI(...)`**: A helper function to handle `fetch` requests to the Gemini API.
+     * -   **`showNotification(...)`**: Displays temporary feedback messages to the user.
+     * -   **`handleFileUpload(...)`**: Reads and parses a user-uploaded CSV file.
+     * -   **`downloadCSV(...)`**: Converts an array of objects to a CSV string and triggers a download.
+     * -   **`generatePDFReport(...)`**: Compiles data and charts into a downloadable PDF document.
      */
 
     // --- Global Data and Variables Definition ---
@@ -421,6 +423,8 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
             
+            // For production, embedding a CJK font like Noto Sans TC is necessary.
+            // This is a simplified demonstration using standard fonts.
             doc.setFont('helvetica', 'bold');
             doc.text('S&P 500 AI Strategy Report', 105, 20, null, null, 'center');
             doc.setFont('helvetica', 'normal');
@@ -451,7 +455,7 @@
                 head: [['Month', 'Predicted S&P 500']],
                 body: tableBody,
                 startY: 170,
-                headStyles: { fillColor: [59, 130, 246] },
+                headStyles: { fillColor: [59, 130, 246] }, // blue-500
             });
             
             doc.save('sp500-ai-report.pdf');
@@ -598,111 +602,36 @@
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
         }
 
-        // ==================================================================
-        // 【***重大修正***】
-        // 請用這個全新的函式，完整替換掉您 HTML 檔案中原本的 initMonthlyForecast 函式
-        // ==================================================================
         function initMonthlyForecast() {
             const form = document.getElementById('predictionForm');
             const runFutureForecastBtn = document.getElementById('runFutureForecast');
             const defaultFormValues = historicalData[historicalData.length - 1];
-            
-            // 定義模型需要的12個自變數的正確名稱，這個順序必須和訓練時完全一樣
-            const featureKeys = [
-                't_1', 't_2', 'dollar_index', 'us_10y_yield', 'us_2y_yield', 
-                'unemployment', 'cpi', 'pmi', 'vix', 'nfp', 'ffr', 'gold'
-            ];
-
-            // 動態生成表單
             form.innerHTML = '';
-            featureKeys.forEach(key => {
+            Object.keys(modelFeatureNames).forEach(key => {
                 const div = document.createElement('div');
                 div.innerHTML = `<label for="input-${key}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[key]}</label><input type="number" id="input-${key}" name="${key}" step="any" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${defaultFormValues[key] || ''}">`;
                 form.appendChild(div);
             });
-
-            // 呼叫 Vertex AI API 的核心函式
-            async function callPredictionAPI(instances) {
-                // 【***請在這裡貼上您部署成功的 API 網址***】
-                const API_ENDPOINT = "https://my-vertex-proxy-1095766716155.asia-east1.run.app/predict";
-                
-                if (API_ENDPOINT.includes("貼上")) {
-                    showNotification('錯誤：尚未設定 API 端點網址。', 'error');
-                    return null;
-                }
-
-                // Vertex AI 需要的標準請求格式
-                const requestBody = { instances };
-
-                try {
-                    const response = await fetch(API_ENDPOINT, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(requestBody)
-                    });
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        throw new Error(`API 請求失敗: ${errorText}`);
-                    }
-                    const result = await response.json();
-                    return result.predictions;
-                } catch (error) {
-                    console.error("呼叫預測 API 失敗:", error);
-                    showNotification(error.message, 'error');
-                    return null;
-                }
-            }
-
-            // 當點擊 "開始預測" 按鈕時
-            runFutureForecastBtn.addEventListener('click', async () => {
+            runFutureForecastBtn.addEventListener('click', () => {
                 const initialInputs = {};
                 const formData = new FormData(form);
                 let isValid = true;
-                
-                // 從表單收集初始數據
                 for (let [key, value] of formData.entries()) {
-                    if (value === '' || isNaN(parseFloat(value))) {
-                        isValid = false;
-                        break;
-                    }
+                    if (value === '' || isNaN(parseFloat(value))) { isValid = false; break; }
                     initialInputs[key] = parseFloat(value);
                 }
-
-                if (!isValid) {
-                    showNotification('請填寫所有有效的初始數值。', 'error');
-                    return;
-                }
-
-                showNotification('正在向 AI 模型請求預測...', 'info');
-                runFutureForecastBtn.disabled = true;
-
+                if (!isValid) { showNotification('請填寫所有有效的初始數值。', 'error'); return; }
                 const monthsToForecast = parseInt(document.getElementById('monthsToForecast').value);
                 const forecastResults = [];
                 let currentInputs = { ...initialInputs };
-
                 for (let i = 0; i < monthsToForecast; i++) {
-                    // 1. 準備當前這一期的特徵陣列 (必須符合 featureKeys 的順序)
-                    const currentFeatures = featureKeys.map(key => currentInputs[key]);
-                    
-                    // 2. 呼叫 API 進行預測
-                    const predictions = await callPredictionAPI([currentFeatures]);
-                    
-                    if (predictions === null) { // API 呼叫失敗
-                        runFutureForecastBtn.disabled = false;
-                        return; 
-                    }
-                    
-                    const prediction = parseFloat(predictions[0].toFixed(2));
+                    const t1 = currentInputs['t_1']; const t2 = currentInputs['t_2']; const vix = currentInputs['vix'];
+                    let prediction = t1 * 0.96 + t2 * 0.04 - (vix - 15) * 8;
+                    prediction = parseFloat(prediction.toFixed(2));
                     forecastResults.push(prediction);
-
-                    // 3. 更新下一期的輸入 (t-2 = t-1, t-1 = 最新預測值)
                     currentInputs.t_2 = currentInputs.t_1;
                     currentInputs.t_1 = prediction;
                 }
-                
-                runFutureForecastBtn.disabled = false;
-                
-                // --- 更新圖表與表格 ---
                 latestForecastResults = forecastResults;
                 latestInitialInputs = initialInputs;
                 const futureForecastSection = document.getElementById('futureForecastSection');
@@ -710,7 +639,6 @@
                 const tableBody = document.getElementById('futurePredictionTableBody');
                 const lastHistoryDate = new Date(historicalData[historicalData.length - 1].date + "-01");
                 const forecastLabels = [];
-                
                 tableBody.innerHTML = '';
                 forecastResults.forEach((value, i) => {
                     const forecastDate = new Date(lastHistoryDate);
@@ -718,12 +646,10 @@
                     forecastLabels.push(forecastDate);
                     tableBody.innerHTML += `<tr><td class="px-4 py-3 whitespace-nowrap text-sm">${forecastDate.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit' })}</td><td class="px-4 py-3 whitespace-nowrap text-sm">${value.toLocaleString('en-US')}</td></tr>`;
                 });
-                
                 const chartCtx = document.getElementById('futurePredictionChart').getContext('2d');
                 const chartData = { labels: forecastLabels, datasets: [{ label: 'S&P 500 預測走勢', data: [initialInputs.t_1, ...forecastResults], borderColor: 'rgb(22, 163, 74)', backgroundColor: 'rgba(22, 163, 74, 0.1)', fill: true, tension: 0.3 }] };
                 const chartOptions = { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'month' } } } };
                 chartInstances.futureChart = createChart(chartCtx, chartInstances.futureChart, 'line', chartData, chartOptions);
-                
                 placeholder.classList.add('hidden');
                 futureForecastSection.classList.remove('hidden');
                 showNotification('模型預測成功！', 'success');
