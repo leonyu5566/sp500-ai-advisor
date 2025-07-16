@@ -687,11 +687,30 @@
             const form = document.getElementById('predictionForm');
             const runBtn = document.getElementById('runFutureForecast');
 
-            const featureOrder = [
-                't_1', 't_2', 'Us_Dollar_Index', 'US10YY', 'US2YY',
-                'Unemployment_Rate', 'CPI', 'PMI_Index', 'VIX_Index', 'EFFR', 'gold', 'Nfarm'
-            ];
-            const defaults = historicalData.at(-1);
+            // －－把 historicalData 的欄位名稱 → 轉成模型欄位－－
+            const KEY_ALIAS = {
+                dollar_index:        'Us_Dollar_Index',
+                us_10y_yield:        'US10YY',
+                us_2y_yield:         'US2YY',
+                unemployment:        'Unemployment_Rate',
+                cpi:                 'CPI',
+                pmi:                 'PMI_Index',
+                vix:                 'VIX_Index',
+                nfp:                 'Nfarm',
+                ffr:                 'EFFR',
+                gold:                'gold',
+                y_t:                 'y_t',
+                t_1:                 't_1',
+                t_2:                 't_2'
+            };
+            // 讓 defaults 先改成「正確鍵名」的物件
+            const lastRowRaw = historicalData.at(-1);
+            const defaults = {};
+            Object.keys(lastRowRaw).forEach(k => {
+                const stdKey = KEY_ALIAS[k] || k;
+                defaults[stdKey] = lastRowRaw[k];
+            });
+
             form.innerHTML = '';
             featureOrder.forEach(k => {
                 const value = (defaults[k] !== undefined && defaults[k] !== null && defaults[k] !== '') ? defaults[k] : 0;
@@ -865,7 +884,6 @@
     </script>
 </body>
 </html>
-
 
 
 
