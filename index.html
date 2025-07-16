@@ -699,6 +699,11 @@
                     `<div><label for="input-${k}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[k] || k}</label><input type="number" id="input-${k}" step="any" name="${k}" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${value}"></div>`);
             });
 
+            const MACRO_KEYS = [
+                'Us_Dollar_Index', 'US10YY', 'US2YY', 'Unemployment_Rate',
+                'CPI', 'PMI_Index', 'VIX_Index', 'EFFR', 'gold', 'Nfarm'
+            ];
+
             runBtn.addEventListener('click', async () => {
                 const formData = new FormData(form);
                 const init = {};
@@ -715,7 +720,6 @@
                 latestForecastResults = [];
                 const months = +document.getElementById('monthsToForecast').value;
                 let cur = { ...init };
-                
                 showNotification('正在向 AI 模型請求預測...','info');
                 runBtn.disabled = true;
 
@@ -723,8 +727,15 @@
                     for (let i=0; i<months; i++) {
                         const pred = await fetchPredict(cur);
                         latestForecastResults.push(pred);
+                        // ① 更新 lag 變數
                         cur.t_2 = cur.t_1;
                         cur.t_1 = pred;
+                        // ② macro features 用「近 3 月移動平均」慢慢變化
+                        MACRO_KEYS.forEach(k => {
+                            const histArr = historicalData.slice(-3).map(r => r[k]);
+                            const recentAvg = histArr.reduce((a, b) => a + b, 0) / histArr.length;
+                            cur[k] = cur[k] * 0.7 + recentAvg * 0.3;
+                        });
                     }
                     renderForecastChart();
                     showNotification('模型預測完成！','success');
@@ -853,5 +864,6 @@
     </script>
 </body>
 </html>
+
 
 
