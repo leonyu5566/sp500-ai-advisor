@@ -751,9 +751,11 @@
                         // ① 更新 lag 變數
                         cur.t_2 = cur.t_1;
                         cur.t_1 = pred;
-                        // ② macro features 緩慢往 1月的值靠攏（90% 當前 + 10% 1月）
+                        // ② macro features 緩慢往 1月的值靠攏（90% 當前 + 10% 1月），確保都是數字
                         MACRO_KEYS.forEach(k => {
-                            cur[k] = cur[k] * 0.9 + macroBase[k] * 0.1;
+                            const curVal = parseFloat(cur[k]);
+                            const baseVal = parseFloat(macroBase[k]);
+                            cur[k] = curVal * 0.9 + baseVal * 0.1;
                         });
                     }
                     renderForecastChart();
@@ -883,6 +885,7 @@
     </script>
 </body>
 </html>
+
 
 
 
