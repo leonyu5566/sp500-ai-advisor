@@ -748,7 +748,7 @@
                 let cur = { ...init };
                 // 取預測起始月（1月）的 macro features
                 const macroBase = {};
-                MACRO_KEYS.forEach(k => macroBase[k] = cur[k]);
+                MACRO_KEYS.forEach(k => macroBase[k] = parseFloat(cur[k]));
                 showNotification('正在向 AI 模型請求預測...','info');
                 runBtn.disabled = true;
 
@@ -894,6 +894,7 @@
     </script>
 </body>
 </html>
+
 
 
 
