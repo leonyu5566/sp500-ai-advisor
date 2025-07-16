@@ -754,7 +754,7 @@
 
                 try {
                     for (let i=0; i<months; i++) {
-                        // 清洗每個欄位值，確保是 float
+                        // 清洗所有欄位，確保都是 float
                         Object.keys(cur).forEach(k => {
                             if (typeof cur[k] === 'object' && cur[k] !== null) {
                                 cur[k] = parseFloat(cur[k].value || cur[k].data || 0);
@@ -763,16 +763,14 @@
                             }
                         });
                         // 送給 fetchPredict 前直接傳物件
-                        const pred = await fetchPredict({ ...cur });
+                        const pred = await fetchPredict({ ...cur }); // pred 必須是數字
                         latestForecastResults.push(pred);
                         // ① 更新 lag 變數
-                        cur.t_2 = cur.t_1;
-                        cur.t_1 = pred;
+                        cur.t_2 = parseFloat(cur.t_1);
+                        cur.t_1 = parseFloat(pred);
                         // ② macro features 緩慢往 1月的值靠攏（90% 當前 + 10% 1月），確保都是數字
                         MACRO_KEYS.forEach(k => {
-                            const curVal = parseFloat(cur[k]);
-                            const baseVal = parseFloat(macroBase[k]);
-                            cur[k] = parseFloat((curVal * 0.9 + baseVal * 0.1).toFixed(4));
+                            cur[k] = parseFloat(cur[k]) * 0.9 + parseFloat(macroBase[k]) * 0.1;
                         });
                     }
                     renderForecastChart();
@@ -902,6 +900,7 @@
     </script>
 </body>
 </html>
+
 
 
 
