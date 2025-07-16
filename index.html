@@ -632,20 +632,28 @@
             const section = document.getElementById('futureForecastSection');
             const placeholder = document.getElementById('forecast-placeholder');
             tbody.innerHTML = '';
-            const lastDate = new Date(historicalData.at(-1).date+'-01');
+            // 取得最後一筆資料的年月
+            const lastDateStr = historicalData.at(-1).date; // 例如 '2025-01'
+            const [lastYear, lastMonth] = lastDateStr.split('-').map(Number);
             const labels = [], data = [latestInitialInputs.t_1];
-            latestForecastResults.forEach((v,i) => {
-                const d = new Date(lastDate);
-                d.setMonth(d.getMonth()+i+1);
-                labels.push(d);
+            latestForecastResults.forEach((v, i) => {
+                // 預測月份 = 最後一筆資料的下個月開始
+                let year = lastYear;
+                let month = lastMonth + i + 1;
+                while (month > 12) {
+                    year += 1;
+                    month -= 12;
+                }
+                const forecastMonth = `${year}/${month.toString().padStart(2, '0')}`;
+                labels.push(forecastMonth);
                 data.push(v);
                 tbody.insertAdjacentHTML('beforeend',
-                    `<tr><td class="px-4 py-3 text-sm">${d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit'})}</td><td class="px-4 py-3 text-sm">${v.toLocaleString('en-US')}</td></tr>`);
+                    `<tr><td class="px-4 py-3 text-sm">${forecastMonth}</td><td class="px-4 py-3 text-sm">${v.toLocaleString('en-US')}</td></tr>`);
             });
             const ctx = document.getElementById('futurePredictionChart').getContext('2d');
             chartInstances.futureChart = createChart(ctx, chartInstances.futureChart, 'line', {
                 labels, datasets:[{label:'S&P 500 預測走勢',data,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,0.1)',fill:true,tension:0.3}]
-            }, {responsive:true,maintainAspectRatio:false,scales:{x:{type:'time',time:{unit:'month'}}}});
+            }, {responsive:true,maintainAspectRatio:false,scales:{x:{type:'category'}}});
             placeholder.classList.add('hidden');
             section.classList.remove('hidden');
         }
@@ -819,3 +827,4 @@
     </script>
 </body>
 </html>
+
