@@ -392,6 +392,15 @@
                 showNotification('沒有可下載的數據。', 'error');
                 return;
             }
+            // 防呆：產生月份時 fallback
+            let lastYear = 2025, lastMonth = 1;
+            if (historicalData.at(-1) && historicalData.at(-1).date && typeof historicalData.at(-1).date === 'string') {
+                const [y, m] = historicalData.at(-1).date.split('-').map(Number);
+                if (!isNaN(y) && !isNaN(m)) {
+                    lastYear = y;
+                    lastMonth = m;
+                }
+            }
             const headers = Object.keys(data[0]);
             const csvRows = [
                 headers.join(','),
@@ -419,7 +428,15 @@
             showNotification('正在生成 PDF 報告...', 'info');
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
+            // 防呆：產生月份時 fallback
+            let lastYear = 2025, lastMonth = 1;
+            if (historicalData.at(-1) && historicalData.at(-1).date && typeof historicalData.at(-1).date === 'string') {
+                const [y, m] = historicalData.at(-1).date.split('-').map(Number);
+                if (!isNaN(y) && !isNaN(m)) {
+                    lastYear = y;
+                    lastMonth = m;
+                }
+            }
             doc.setFont('helvetica', 'bold');
             doc.text('S&P 500 AI Strategy Report', 105, 20, null, null, 'center');
             doc.setFont('helvetica', 'normal');
@@ -637,7 +654,7 @@
             tbody.innerHTML = '';
             // 取得最後一筆資料的年月，若無 date 欄位則 fallback
             let lastYear = 2025, lastMonth = 1; // 預設 fallback
-            if (historicalData.at(-1) && historicalData.at(-1).date) {
+            if (historicalData.at(-1) && historicalData.at(-1).date && typeof historicalData.at(-1).date === 'string') {
                 const [y, m] = historicalData.at(-1).date.split('-').map(Number);
                 if (!isNaN(y) && !isNaN(m)) {
                     lastYear = y;
@@ -835,3 +852,4 @@
     </script>
 </body>
 </html>
+
