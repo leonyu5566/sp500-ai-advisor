@@ -629,11 +629,20 @@
         const PREDICT_API_URL = "https://my-vertex-proxy-1095766716155.asia-east1.run.app/predict";
 
         async function fetchPredict(instanceObj) {
+            // 將 { value: ... } 轉為純數值
+            function unwrapValues(obj) {
+                const unwrapped = {};
+                for (const key in obj) {
+                    const v = obj[key];
+                    unwrapped[key] = (typeof v === 'object' && v !== null && 'value' in v) ? v.value : v;
+                }
+                return unwrapped;
+            }
             const resp = await fetch(PREDICT_API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    instances: [instanceObj] // 直接送物件
+                    instances: [unwrapValues(instanceObj)] // 保證送出純數值
                 })
             });
             if (!resp.ok) {
@@ -885,6 +894,7 @@
     </script>
 </body>
 </html>
+
 
 
 
