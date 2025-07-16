@@ -754,6 +754,14 @@
 
                 try {
                     for (let i=0; i<months; i++) {
+                        // 清洗每個欄位值，確保是 float
+                        Object.keys(cur).forEach(k => {
+                            if (typeof cur[k] === 'object' && cur[k] !== null) {
+                                cur[k] = parseFloat(cur[k].value || cur[k].data || 0);
+                            } else {
+                                cur[k] = parseFloat(cur[k]);
+                            }
+                        });
                         // 送給 fetchPredict 前直接傳物件
                         const pred = await fetchPredict({ ...cur });
                         latestForecastResults.push(pred);
