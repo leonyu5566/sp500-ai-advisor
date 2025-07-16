@@ -638,16 +638,22 @@
             const defaults = historicalData.at(-1);
             form.innerHTML = '';
             featureOrder.forEach(k => {
+                const value = (defaults[k] !== undefined && defaults[k] !== null && defaults[k] !== '') ? defaults[k] : 0;
                 form.insertAdjacentHTML('beforeend',
-                    `<div><label for="input-${k}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[k] || k}</label><input type="number" id="input-${k}" step="any" name="${k}" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${defaults[k] ?? ''}"></div>`);
+                    `<div><label for="input-${k}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[k] || k}</label><input type="number" id="input-${k}" step="any" name="${k}" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${value}"></div>`);
             });
 
             runBtn.addEventListener('click', async () => {
                 const formData = new FormData(form);
                 const init = {};
+                let missing = [];
                 for (let [k,v] of formData.entries()) {
-                    if (!v || isNaN(v)) return showNotification('請填寫所有有效的初始數值','error');
+                    if (!v || isNaN(v)) missing.push(modelFeatureNames[k] || k);
                     init[k] = +v;
+                }
+                if (missing.length > 0) {
+                    showNotification('請填寫所有有效的初始數值：' + missing.join('、'), 'error');
+                    return;
                 }
                 latestInitialInputs = { ...init };
                 latestForecastResults = [];
