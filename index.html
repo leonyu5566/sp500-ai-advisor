@@ -572,22 +572,27 @@
             const modal = document.getElementById('indicator-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalCloseBtn = document.getElementById('modal-close-btn');
-            
-            indicatorGrid.innerHTML = ''; 
+            indicatorGrid.innerHTML = '';
             Object.keys(dashboardIndicatorNames).forEach(key => {
                 const card = document.createElement('div');
                 card.className = 'indicator-card card p-4 group border border-gray-200';
                 card.dataset.indicatorKey = key;
-                const latestValue = historicalData[historicalData.length - 1][key];
+                let latestValue = historicalData[historicalData.length - 1][key];
                 const unit = indicatorUnits[key] || '';
+                if (latestValue === undefined || latestValue === null || latestValue === '') latestValue = '-';
                 card.innerHTML = `<div class="flex justify-between items-start"><div><p class="text-sm font-medium text-gray-500">${dashboardIndicatorNames[key]}</p><p class="text-2xl font-bold text-gray-800 mt-1">${latestValue}${unit}</p></div><div class="bg-gray-100 group-hover:bg-blue-100 rounded-full p-1.5 transition-colors duration-200"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg></div></div>`;
                 indicatorGrid.appendChild(card);
                 card.addEventListener('click', () => {
                     const indicatorKey = card.dataset.indicatorKey;
                     modalTitle.textContent = dashboardIndicatorNames[indicatorKey];
                     const modalChartCtx = document.getElementById('modal-chart').getContext('2d');
-                    const chartData = { labels: historicalData.map(d => d.date), datasets: [{ label: dashboardIndicatorNames[indicatorKey], data: historicalData.map(d => d[indicatorKey]), borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, tension: 0.1, fill: true }] };
-                    chartInstances.modalChart = createChart(modalChartCtx, chartInstances.modalChart, 'line', chartData, { responsive: true, maintainAspectRatio: false });
+                    // 曲線圖資料
+                    const chartLabels = historicalData.map(d => d.date || '');
+                    const chartData = historicalData.map(d => d[indicatorKey]);
+                    // 若全為 undefined/null/空，顯示無資料
+                    const allEmpty = chartData.every(v => v === undefined || v === null || v === '');
+                    const datasets = allEmpty ? [] : [{ label: dashboardIndicatorNames[indicatorKey], data: chartData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 2, tension: 0.1, fill: true }];
+                    chartInstances.modalChart = createChart(modalChartCtx, chartInstances.modalChart, 'line', { labels: chartLabels, datasets }, { responsive: true, maintainAspectRatio: false });
                     modal.classList.add('active');
                 });
             });
@@ -794,17 +799,16 @@
               dynamicTyping: true,
               skipEmptyLines: true,
               complete: function(results) {
-                // 將欄位名稱標準化（去除空白）
+                // 強制 key 完全照 CSV 標題
+                const csvHeader = results.meta.fields.map(h => h.trim());
                 results.data = results.data.map(row => {
                   const newRow = {};
-                  Object.keys(row).forEach(k => {
-                    const newKey = k.trim();
-                    newRow[newKey] = row[k];
+                  csvHeader.forEach(h => {
+                    newRow[h] = row[h];
                   });
                   return newRow;
                 });
                 historicalData = results.data;
-                // 初始化所有依賴 historicalData 的功能
                 if (typeof initDataManagement === 'function') initDataManagement(true);
                 if (typeof renderIndicatorCards === 'function') renderIndicatorCards();
                 if (typeof initMonthlyForecast === 'function') initMonthlyForecast();
