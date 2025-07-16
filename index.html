@@ -314,7 +314,20 @@
         let latestForecastResults = []; 
         let latestInitialInputs = {};
         const dashboardIndicatorNames = { 'y_t': 'S&P 500 指數', 'dollar_index': '美元指數', 'us_10y_yield': '十年期公債殖利率', 'us_2y_yield': '二年期公債殖利率', 'unemployment': '失業率', 'cpi': '消費者物價指數CPI', 'pmi': '採購經理人指數PMI', 'vix': 'VIX恐慌指數', 'nfp': '非農就業人口 (千人)', 'ffr': '聯準會基本利率FFR', 'gold': '黃金價格' };
-        const modelFeatureNames = { 't_1': 'S&P 500 前一期 (t-1)', 't_2': 'S&P 500 前二期 (t-2)', 'dollar_index': '美元指數', 'us_10y_yield': '十年期公債殖利率', 'us_2y_yield': '二年期公債殖利率', 'unemployment': '失業率', 'cpi': '消費者物價指數CPI', 'pmi': '採購經理人指數PMI', 'vix': 'VIX恐慌指數', 'nfp': '非農就業人口 (千人)', 'ffr': '聯準會基本利率FFR', 'gold': '黃金價格' };
+        const modelFeatureNames = {
+            't_1': 'S&P 500 前一期 (t-1)',
+            't_2': 'S&P 500 前二期 (t-2)',
+            'Us_Dollar_Index': '美元指數',
+            'US10YY': '十年期公債殖利率',
+            'US2YY': '二年期公債殖利率',
+            'Unemployment_Rate': '失業率',
+            'CPI': '消費者物價指數CPI',
+            'PMI_Index': '採購經理人指數PMI',
+            'VIX_Index': 'VIX恐慌指數',
+            'EFFR': '聯準會基本利率FFR',
+            'gold': '黃金價格',
+            'Nfarm': '非農就業人口 (千人)'
+        };
         const indicatorUnits = { 'us_10y_yield': '%', 'us_2y_yield': '%', 'unemployment': '%', 'cpi': '%', 'ffr': '%' };
         const initializedPages = new Set();
         let chartInstances = {};
@@ -571,8 +584,8 @@
 
         async function fetchPredict(instance) {
             const featureOrder = [
-                't_1', 't_2', 'dollar_index', 'us_10y_yield', 'us_2y_yield', 
-                'unemployment', 'cpi', 'pmi', 'vix', 'nfp', 'ffr', 'gold'
+                't_1', 't_2', 'Us_Dollar_Index', 'US10YY', 'US2YY',
+                'Unemployment_Rate', 'CPI', 'PMI_Index', 'VIX_Index', 'EFFR', 'gold', 'Nfarm'
             ];
             const orderedInstance = featureOrder.map(key => instance[key]);
 
@@ -618,11 +631,15 @@
             const form = document.getElementById('predictionForm');
             const runBtn = document.getElementById('runFutureForecast');
 
+            const featureOrder = [
+                't_1', 't_2', 'Us_Dollar_Index', 'US10YY', 'US2YY',
+                'Unemployment_Rate', 'CPI', 'PMI_Index', 'VIX_Index', 'EFFR', 'gold', 'Nfarm'
+            ];
             const defaults = historicalData.at(-1);
             form.innerHTML = '';
-            Object.keys(modelFeatureNames).forEach(k => {
+            featureOrder.forEach(k => {
                 form.insertAdjacentHTML('beforeend',
-                    `<div><label for="input-${k}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[k]}</label><input type="number" id="input-${k}" step="any" name="${k}" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${defaults[k] ?? ''}"></div>`);
+                    `<div><label for="input-${k}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[k] || k}</label><input type="number" id="input-${k}" step="any" name="${k}" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${defaults[k] ?? ''}"></div>`);
             });
 
             runBtn.addEventListener('click', async () => {
