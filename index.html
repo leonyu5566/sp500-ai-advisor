@@ -598,36 +598,111 @@
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
         }
 
+        // ==================================================================
+        // 【***重大修正***】
+        // 請用這個全新的函式，完整替換掉您 HTML 檔案中原本的 initMonthlyForecast 函式
+        // ==================================================================
         function initMonthlyForecast() {
             const form = document.getElementById('predictionForm');
             const runFutureForecastBtn = document.getElementById('runFutureForecast');
             const defaultFormValues = historicalData[historicalData.length - 1];
+            
+            // 定義模型需要的12個自變數的正確名稱，這個順序必須和訓練時完全一樣
+            const featureKeys = [
+                't_1', 't_2', 'dollar_index', 'us_10y_yield', 'us_2y_yield', 
+                'unemployment', 'cpi', 'pmi', 'vix', 'nfp', 'ffr', 'gold'
+            ];
+
+            // 動態生成表單
             form.innerHTML = '';
-            Object.keys(modelFeatureNames).forEach(key => {
+            featureKeys.forEach(key => {
                 const div = document.createElement('div');
                 div.innerHTML = `<label for="input-${key}" class="block text-xs font-medium text-gray-600">${modelFeatureNames[key]}</label><input type="number" id="input-${key}" name="${key}" step="any" class="form-input mt-1 block w-full px-2 py-1.5 text-sm" value="${defaultFormValues[key] || ''}">`;
                 form.appendChild(div);
             });
-            runFutureForecastBtn.addEventListener('click', () => {
+
+            // 呼叫 Vertex AI API 的核心函式
+            async function callPredictionAPI(instances) {
+                // 【***請在這裡貼上您部署成功的 API 網址***】
+                const API_ENDPOINT = "https://asia-east1-aiplatform.googleapis.com/v1/projects/1095766716155/locations/asia-east1/endpoints/2631892187314388992:predict";
+                
+                if (API_ENDPOINT.includes("貼上")) {
+                    showNotification('錯誤：尚未設定 API 端點網址。', 'error');
+                    return null;
+                }
+
+                // Vertex AI 需要的標準請求格式
+                const requestBody = { instances };
+
+                try {
+                    const response = await fetch(API_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(requestBody)
+                    });
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`API 請求失敗: ${errorText}`);
+                    }
+                    const result = await response.json();
+                    return result.predictions;
+                } catch (error) {
+                    console.error("呼叫預測 API 失敗:", error);
+                    showNotification(error.message, 'error');
+                    return null;
+                }
+            }
+
+            // 當點擊 "開始預測" 按鈕時
+            runFutureForecastBtn.addEventListener('click', async () => {
                 const initialInputs = {};
                 const formData = new FormData(form);
                 let isValid = true;
+                
+                // 從表單收集初始數據
                 for (let [key, value] of formData.entries()) {
-                    if (value === '' || isNaN(parseFloat(value))) { isValid = false; break; }
+                    if (value === '' || isNaN(parseFloat(value))) {
+                        isValid = false;
+                        break;
+                    }
                     initialInputs[key] = parseFloat(value);
                 }
-                if (!isValid) { showNotification('請填寫所有有效的初始數值。', 'error'); return; }
+
+                if (!isValid) {
+                    showNotification('請填寫所有有效的初始數值。', 'error');
+                    return;
+                }
+
+                showNotification('正在向 AI 模型請求預測...', 'info');
+                runFutureForecastBtn.disabled = true;
+
                 const monthsToForecast = parseInt(document.getElementById('monthsToForecast').value);
                 const forecastResults = [];
                 let currentInputs = { ...initialInputs };
+
                 for (let i = 0; i < monthsToForecast; i++) {
-                    const t1 = currentInputs['t_1']; const t2 = currentInputs['t_2']; const vix = currentInputs['vix'];
-                    let prediction = t1 * 0.96 + t2 * 0.04 - (vix - 15) * 8;
-                    prediction = parseFloat(prediction.toFixed(2));
+                    // 1. 準備當前這一期的特徵陣列 (必須符合 featureKeys 的順序)
+                    const currentFeatures = featureKeys.map(key => currentInputs[key]);
+                    
+                    // 2. 呼叫 API 進行預測
+                    const predictions = await callPredictionAPI([currentFeatures]);
+                    
+                    if (predictions === null) { // API 呼叫失敗
+                        runFutureForecastBtn.disabled = false;
+                        return; 
+                    }
+                    
+                    const prediction = parseFloat(predictions[0].toFixed(2));
                     forecastResults.push(prediction);
+
+                    // 3. 更新下一期的輸入 (t-2 = t-1, t-1 = 最新預測值)
                     currentInputs.t_2 = currentInputs.t_1;
                     currentInputs.t_1 = prediction;
                 }
+                
+                runFutureForecastBtn.disabled = false;
+                
+                // --- 更新圖表與表格 ---
                 latestForecastResults = forecastResults;
                 latestInitialInputs = initialInputs;
                 const futureForecastSection = document.getElementById('futureForecastSection');
@@ -635,6 +710,7 @@
                 const tableBody = document.getElementById('futurePredictionTableBody');
                 const lastHistoryDate = new Date(historicalData[historicalData.length - 1].date + "-01");
                 const forecastLabels = [];
+                
                 tableBody.innerHTML = '';
                 forecastResults.forEach((value, i) => {
                     const forecastDate = new Date(lastHistoryDate);
@@ -642,10 +718,12 @@
                     forecastLabels.push(forecastDate);
                     tableBody.innerHTML += `<tr><td class="px-4 py-3 whitespace-nowrap text-sm">${forecastDate.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit' })}</td><td class="px-4 py-3 whitespace-nowrap text-sm">${value.toLocaleString('en-US')}</td></tr>`;
                 });
+                
                 const chartCtx = document.getElementById('futurePredictionChart').getContext('2d');
                 const chartData = { labels: forecastLabels, datasets: [{ label: 'S&P 500 預測走勢', data: [initialInputs.t_1, ...forecastResults], borderColor: 'rgb(22, 163, 74)', backgroundColor: 'rgba(22, 163, 74, 0.1)', fill: true, tension: 0.3 }] };
                 const chartOptions = { responsive: true, maintainAspectRatio: false, scales: { x: { type: 'time', time: { unit: 'month' } } } };
                 chartInstances.futureChart = createChart(chartCtx, chartInstances.futureChart, 'line', chartData, chartOptions);
+                
                 placeholder.classList.add('hidden');
                 futureForecastSection.classList.remove('hidden');
                 showNotification('模型預測成功！', 'success');
