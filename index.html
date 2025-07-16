@@ -635,12 +635,17 @@
             const section = document.getElementById('futureForecastSection');
             const placeholder = document.getElementById('forecast-placeholder');
             tbody.innerHTML = '';
-            // 取得最後一筆資料的年月
-            const lastDateStr = historicalData.at(-1).date; // 例如 '2025-01'
-            const [lastYear, lastMonth] = lastDateStr.split('-').map(Number);
+            // 取得最後一筆資料的年月，若無 date 欄位則 fallback
+            let lastYear = 2025, lastMonth = 1; // 預設 fallback
+            if (historicalData.at(-1) && historicalData.at(-1).date) {
+                const [y, m] = historicalData.at(-1).date.split('-').map(Number);
+                if (!isNaN(y) && !isNaN(m)) {
+                    lastYear = y;
+                    lastMonth = m;
+                }
+            }
             const labels = [], data = [latestInitialInputs.t_1];
             latestForecastResults.forEach((v, i) => {
-                // 預測月份 = 最後一筆資料的下個月開始
                 let year = lastYear;
                 let month = lastMonth + i + 1;
                 while (month > 12) {
