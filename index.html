@@ -622,29 +622,21 @@
         // ==================================================================
         const PREDICT_API_URL = "https://my-vertex-proxy-1095766716155.asia-east1.run.app/predict";
 
-        async function fetchPredict(instance) {
-            const featureOrder = [
-                't_1', 't_2', 'Us_Dollar_Index', 'US10YY', 'US2YY',
-                'Unemployment_Rate', 'CPI', 'PMI_Index', 'VIX_Index', 'EFFR', 'gold', 'Nfarm'
-            ];
-            const orderedInstance = featureOrder.map(key => instance[key]);
-            // 新增 log 檢查送出內容
-            console.log('送出到後端的 features:', orderedInstance);
-            console.log('送出順序:', featureOrder);
-
+        async function fetchPredict(instanceObj) {
             const resp = await fetch(PREDICT_API_URL, {
                 method: 'POST',
-                mode: 'cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ instances: [orderedInstance] })
+                body: JSON.stringify({
+                    instances: [instanceObj] // 直接送物件
+                })
             });
             if (!resp.ok) {
-                const errorText = await resp.text();
-                throw new Error(`HTTP ${resp.status}: ${errorText}`);
+                const err = await resp.text();
+                throw new Error(`proxy HTTP ${resp.status}: ${err}`);
             }
             const json = await resp.json();
-            if (!json.predictions || !json.predictions.length) throw new Error('Empty predictions');
-            return parseFloat(json.predictions[0]);
+            if (!json.predictions?.length) throw new Error('no prediction');
+            return Number(json.predictions[0]);
         }
 
         function renderForecastChart() {
@@ -747,7 +739,8 @@
 
                 try {
                     for (let i=0; i<months; i++) {
-                        const pred = await fetchPredict(cur);
+                        // 送給 fetchPredict 前直接傳物件
+                        const pred = await fetchPredict({ ...cur });
                         latestForecastResults.push(pred);
                         // ① 更新 lag 變數
                         cur.t_2 = cur.t_1;
@@ -884,6 +877,7 @@
     </script>
 </body>
 </html>
+
 
 
 
