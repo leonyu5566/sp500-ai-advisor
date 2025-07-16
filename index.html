@@ -313,7 +313,19 @@
         let historicalData = [ { date: '2024-02', y_t: 5096.27, t_1: 4958.61, t_2: 4845.65, dollar_index: 104.14, us_10y_yield: 4.25, us_2y_yield: 4.64, unemployment: 3.9, cpi: 3.2, pmi: 47.8, vix: 13.73, nfp: 275, ffr: 5.33, gold: 2325.0 }, { date: '2024-03', y_t: 5254.35, t_1: 5096.27, t_2: 4958.61, dollar_index: 104.52, us_10y_yield: 4.2, us_2y_yield: 4.62, unemployment: 3.8, cpi: 3.5, pmi: 50.3, vix: 13.01, nfp: 303, ffr: 5.33, gold: 2257.8 }, { date: '2024-04', y_t: 5035.69, t_1: 5254.35, t_2: 5096.27, dollar_index: 105.73, us_10y_yield: 4.68, us_2y_yield: 5.04, unemployment: 3.9, cpi: 3.4, pmi: 49.2, vix: 15.33, nfp: 175, ffr: 5.33, gold: 2307.2 }, { date: '2024-05', y_t: 5277.51, t_1: 5035.69, t_2: 5254.35, dollar_index: 104.66, us_10y_yield: 4.51, us_2y_yield: 4.93, unemployment: 4.0, cpi: 3.3, pmi: 48.7, vix: 14.47, nfp: 272, ffr: 5.33, gold: 2347.4 }, { date: '2024-06', y_t: 5460.48, t_1: 5277.51, t_2: 5035.69, dollar_index: 105.91, us_10y_yield: 4.39, us_2y_yield: 4.87, unemployment: 4.0, cpi: 3.3, pmi: 51.1, vix: 13.2, nfp: 272, ffr: 5.33, gold: 2325.0 }, { date: '2024-07', y_t: 5439.68, t_1: 5460.48, t_2: 5277.51, dollar_index: 105.82, us_10y_yield: 4.34, us_2y_yield: 4.85, unemployment: 4.0, cpi: 3.0, pmi: 51.5, vix: 12.98, nfp: 200, ffr: 5.33, gold: 2330.1 }, { date: '2024-08', y_t: 5450.51, t_1: 5439.68, t_2: 5460.48, dollar_index: 105.65, us_10y_yield: 4.25, us_2y_yield: 4.75, unemployment: 3.9, cpi: 3.1, pmi: 51.2, vix: 12.5, nfp: 180, ffr: 5.33, gold: 2345.6 }, { date: '2024-09', y_t: 5329.93, t_1: 5450.51, t_2: 5439.68, dollar_index: 106.21, us_10y_yield: 4.41, us_2y_yield: 4.89, unemployment: 4.1, cpi: 3.2, pmi: 49.8, vix: 14.8, nfp: 165, ffr: 5.33, gold: 2301.2 }, { date: '2024-10', y_t: 5048.42, t_1: 5329.93, t_2: 5450.51, dollar_index: 107.1, us_10y_yield: 4.65, us_2y_yield: 5.01, unemployment: 4.2, cpi: 3.3, pmi: 49.1, vix: 18.2, nfp: 150, ffr: 5.33, gold: 2280.5 }, { date: '2024-11', y_t: 5137.94, t_1: 5048.42, t_2: 5329.93, dollar_index: 105.5, us_10y_yield: 4.35, us_2y_yield: 4.8, unemployment: 4.1, cpi: 3.1, pmi: 50.2, vix: 15.5, nfp: 190, ffr: 5.33, gold: 2315.8 }, { date: '2024-12', y_t: 5051.57, t_1: 5137.94, t_2: 5048.42, dollar_index: 104.9, us_10y_yield: 4.22, us_2y_yield: 4.7, unemployment: 4.0, cpi: 3.0, pmi: 50.6, vix: 14.1, nfp: 210, ffr: 5.33, gold: 2350.0 }, { date: '2025-01', y_t: 5123.69, t_1: 5051.57, t_2: 5137.94, dollar_index: 105.2, us_10y_yield: 4.25, us_2y_yield: 4.73, unemployment: 4.0, cpi: 3.3, pmi: 48.7, vix: 13.2, nfp: 272, ffr: 5.33, gold: 2325.0 } ];
         let latestForecastResults = []; 
         let latestInitialInputs = {};
-        const dashboardIndicatorNames = { 'y_t': 'S&P 500 指數', 'dollar_index': '美元指數', 'us_10y_yield': '十年期公債殖利率', 'us_2y_yield': '二年期公債殖利率', 'unemployment': '失業率', 'cpi': '消費者物價指數CPI', 'pmi': '採購經理人指數PMI', 'vix': 'VIX恐慌指數', 'nfp': '非農就業人口 (千人)', 'ffr': '聯準會基本利率FFR', 'gold': '黃金價格' };
+        const dashboardIndicatorNames = {
+            'y_t': 'S&P 500 指數',
+            'Us_Dollar_Index': '美元指數',
+            'US10YY': '十年期公債殖利率',
+            'US2YY': '二年期公債殖利率',
+            'Unemployment_Rate': '失業率',
+            'CPI': '消費者物價指數CPI',
+            'PMI_Index': '採購經理人指數PMI',
+            'VIX_Index': 'VIX恐慌指數',
+            'Nfarm': '非農就業人口 (千人)',
+            'EFFR': '聯準會基本利率FFR',
+            'gold': '黃金價格'
+        };
         const modelFeatureNames = {
             't_1': 'S&P 500 前一期 (t-1)',
             't_2': 'S&P 500 前二期 (t-2)',
@@ -328,7 +340,13 @@
             'gold': '黃金價格',
             'Nfarm': '非農就業人口 (千人)'
         };
-        const indicatorUnits = { 'us_10y_yield': '%', 'us_2y_yield': '%', 'unemployment': '%', 'cpi': '%', 'ffr': '%' };
+        const indicatorUnits = {
+            'US10YY': '%',
+            'US2YY': '%',
+            'Unemployment_Rate': '%',
+            'CPI': '%',
+            'EFFR': '%'
+        };
         const initializedPages = new Set();
         let chartInstances = {};
 
