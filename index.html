@@ -764,7 +764,7 @@
                         MACRO_KEYS.forEach(k => {
                             const curVal = parseFloat(cur[k]);
                             const baseVal = parseFloat(macroBase[k]);
-                            cur[k] = curVal * 0.9 + baseVal * 0.1;
+                            cur[k] = parseFloat((curVal * 0.9 + baseVal * 0.1).toFixed(4));
                         });
                     }
                     renderForecastChart();
@@ -894,6 +894,7 @@
     </script>
 </body>
 </html>
+
 
 
 
