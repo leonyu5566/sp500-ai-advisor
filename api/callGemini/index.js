@@ -1,9 +1,7 @@
-// index.js  (Azure Functions v4, Node 18+)
-
+// Node 18+ 版，Azure Functions v4
 module.exports = async function (context, req) {
-    /** ------------------------------------------------------------------
-     *  1. CORS 預檢 (OPTIONS) — 先回 204 + CORS header
-     * ----------------------------------------------------------------- */
+
+    /* ----------  CORS 預檢  ---------- */
     if (req.method === 'OPTIONS') {
         context.res = {
             status: 204,
@@ -13,42 +11,29 @@ module.exports = async function (context, req) {
                 'Access-Control-Allow-Headers': 'Content-Type'
             }
         };
-        return;                // ← 預檢不往下執行
+        return;
     }
 
-    /** ------------------------------------------------------------------
-     *  2. 讀取環境變數中的 Gemini API Key
-     * ----------------------------------------------------------------- */
+    /* ----------  讀取 API Key  ---------- */
     const geminiApiKey = process.env.GEMINI_API_KEY;
     if (!geminiApiKey) {
-        context.res = {
-            status: 500,
-            body: 'GEMINI_API_KEY is not configured.'
-        };
+        context.res = { status: 500, body: 'GEMINI_API_KEY is not configured.' };
         return;
     }
 
-    /** ------------------------------------------------------------------
-     *  3. 取得前端傳入的 prompt
-     * ----------------------------------------------------------------- */
+    /* ----------  驗證前端輸入  ---------- */
     const userPrompt = req.body?.prompt;
     if (!userPrompt) {
-        context.res = {
-            status: 400,
-            body: 'Request body 必須包含 prompt 欄位。'
-        };
+        context.res = { status: 400, body: 'Body 需包含 prompt 欄位。' };
         return;
     }
 
-    /** ------------------------------------------------------------------
-     *  4. 呼叫 Google Gemini API
-     * ----------------------------------------------------------------- */
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
+    /* ----------  呼叫 Gemini  ---------- */
+    const apiUrl =
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
     const payload = {
-        contents: [
-            { role: 'user', parts: [{ text: userPrompt }] }
-        ]
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }]
     };
 
     try {
@@ -59,15 +44,12 @@ module.exports = async function (context, req) {
         });
 
         if (!gRes.ok) {
-            const errText = await gRes.text();              // 讀原始錯誤文字
+            const errText = await gRes.text();
             throw new Error(`Gemini API ${gRes.status}: ${errText}`);
         }
 
         const result = await gRes.json();
 
-        /** --------------------------------------------------------------
-         *  5. 回傳給前端，並帶 CORS header
-         * ------------------------------------------------------------- */
         context.res = {
             status: 200,
             headers: { 'Access-Control-Allow-Origin': '*' },
@@ -78,7 +60,8 @@ module.exports = async function (context, req) {
         context.res = {
             status: 500,
             headers: { 'Access-Control-Allow-Origin': '*' },
-            body: `Error calling Google Gemini API: ${err.message}`
+            body: `Error calling Google Gemini API: ${err.message}`
         };
     }
 };
+
