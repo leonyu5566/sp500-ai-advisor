@@ -5,8 +5,9 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": [ "post" ],
-      "route": "callGemini"
+      "route": "callGemini",
+      // ① 允許 POST + OPTIONS，必要時也可加 "get"
+      "methods": ["post", "options"]
     },
     {
       "type": "http",
