@@ -656,10 +656,10 @@
             Nfarm: safeParseFloat(cur.Nfarm)
           };
 
-          // Check if any payload value is NaN, which indicates an issue with input data
+          // 檢查數值是否有效
           for (const key in payload) {
               if (isNaN(payload[key])) {
-                  throw new Error(`Input data for prediction contains non-numeric value for ${key}. Please check your inputs.`);
+                  throw new Error(`Input data for prediction contains non-numeric value for ${key}.`);
               }
           }
 
@@ -668,7 +668,7 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ instances: [payload] })
+            body: JSON.stringify({ instances: [payload] })  // <- 重點：用帶欄位名稱的物件陣列
           });
           
           const data = await resp.json();
