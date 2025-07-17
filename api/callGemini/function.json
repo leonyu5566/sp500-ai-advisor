@@ -6,7 +6,7 @@
       "direction": "in",
       "name": "req",
       "route": "callGemini",
-      "methods": ["post", "options"]   
+      "methods": ["post", "options"]
     },
     {
       "type": "http",
@@ -16,4 +16,5 @@
   ],
   "scriptFile": "index.js"
 }
+
 
