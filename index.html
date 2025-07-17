@@ -369,7 +369,7 @@
         async function callGeminiAPI(prompt) {
             try {
                 // 呼叫 Cloud Run Gemini 代理服務
-                const response = await fetch('https://gemini-api-1095766716155.asia-east1.run.app/chat', {
+                const response = await fetch('https://gemini-api-v2-1095766716155.asia-east1.run.app/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: prompt }) // Cloud Run 端點預期的格式
