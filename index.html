@@ -629,19 +629,27 @@
         const PREDICT_API_URL = "https://my-vertex-proxy-1095766716155.asia-east1.run.app/predict";
 
         async function fetchPredict(cur) {
+          // 安全地提取數值，處理[object Object] value: "xxx" } 格式
+          function safeParseFloat(val) {
+            if (typeof val === 'object' && val !== null && val.value !== undefined) {
+              return parseFloat(val.value);
+            }
+            return parseFloat(val);
+          }
+          
           const payload = {
-            t_1: parseFloat(cur.t_1),
-            t_2: parseFloat(cur.t_2),
-            Us_Dollar_Index: parseFloat(cur.Us_Dollar_Index),
-            US10YY: parseFloat(cur.US10YY),
-            US2YY: parseFloat(cur.US2YY),
-            Unemployment_Rate: parseFloat(cur.Unemployment_Rate),
-            CPI: parseFloat(cur.CPI),
-            PMI_Index: parseFloat(cur.PMI_Index),
-            VIX_Index: parseFloat(cur.VIX_Index),
-            EFFR: parseFloat(cur.EFFR),
-            gold: parseFloat(cur.gold),
-            Nfarm: parseFloat(cur.Nfarm)
+            t_1: safeParseFloat(cur.t_1),
+            t_2: safeParseFloat(cur.t_2),
+            Us_Dollar_Index: safeParseFloat(cur.Us_Dollar_Index),
+            US10YY: safeParseFloat(cur.US10YY),
+            US2YY: safeParseFloat(cur.US2YY),
+            Unemployment_Rate: safeParseFloat(cur.Unemployment_Rate),
+            CPI: safeParseFloat(cur.CPI),
+            PMI_Index: safeParseFloat(cur.PMI_Index),
+            VIX_Index: safeParseFloat(cur.VIX_Index),
+            EFFR: safeParseFloat(cur.EFFR),
+            gold: safeParseFloat(cur.gold),
+            Nfarm: safeParseFloat(cur.Nfarm)
           };
           const resp = await fetch(PREDICT_API_URL, {
             method: 'POST',
@@ -900,6 +908,7 @@
     </script>
 </body>
 </html>
+
 
 
 
