@@ -1,13 +1,12 @@
 {
   "bindings": [
     {
-      "authLevel": "anonymous",
+      "authLevel": "anonymous",          #/* 無須 API Key, 前端可直接呼叫 */
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
       "route": "callGemini",
-      // ① 允許 POST + OPTIONS，必要時也可加 "get"
-      "methods": ["post", "options"]
+      "methods": ["post", "options"]     #/* ← 必加 options，讓瀏覽器預檢不 405 */
     },
     {
       "type": "http",
@@ -17,3 +16,4 @@
   ],
   "scriptFile": "index.js"
 }
+
