@@ -365,7 +365,7 @@
         async function callGeminiAPI(prompt) {
             try {
                 // 呼叫我們自己的後端代理 Function
-                const response = await fetch('/api/callGemini', {
+                const response = await fetch('/api/callGemini/function.json', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt: prompt }) // 將 prompt 包在 JSON 物件中傳送
