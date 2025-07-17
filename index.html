@@ -763,7 +763,7 @@
                             }
                         });
                         // 送給 fetchPredict 前直接傳物件
-                        const pred = await fetchPredict({ ...cur }); // pred 必須是數字
+                        const pred = await fetchPredict(cur); // 直接傳 cur，不是 { ...cur }
                         latestForecastResults.push(pred);
                         // ① 更新 lag 變數
                         cur.t_2 = parseFloat(cur.t_1);
@@ -900,7 +900,6 @@
     </script>
 </body>
 </html>
-
 
 
 
