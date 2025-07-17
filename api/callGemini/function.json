@@ -1,12 +1,12 @@
 {
   "bindings": [
     {
-      "authLevel": "anonymous",         
+      "authLevel": "anonymous",
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
       "route": "callGemini",
-      "methods": ["post", "options"]     
+      "methods": ["post", "options"]   
     },
     {
       "type": "http",
