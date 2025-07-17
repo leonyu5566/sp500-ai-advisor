@@ -1,3 +1,0 @@
-{ "routes":[{ "route":"/api/*",
-  "rewrite":"/api/$1",
-  "allowedMethods":["GET","POST","OPTIONS","HEAD"]}] }
