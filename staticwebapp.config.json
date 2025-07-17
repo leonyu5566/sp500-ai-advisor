@@ -1,9 +1,1 @@
-{
-    "routes": [
-      {
-        "route": "/api/callGemini",
-        "methods": ["POST"],
-        "rewrite": "/api/callGemini"
-      }
-    ]
-  }
+{}
