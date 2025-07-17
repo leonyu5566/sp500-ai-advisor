@@ -623,20 +623,24 @@
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
         }
 
-        // ==================================================================
-        // 【***GPT 提供的最終修正版***】
-        // ==================================================================
         const PREDICT_API_URL = "https://my-vertex-proxy-1095766716155.asia-east1.run.app/predict";
 
-        async function fetchPredict(cur) {
-          // 安全地提取數值，處理[object Object] value: "xxx" } 格式
-          function safeParseFloat(val) {
-            if (typeof val === 'object' && val !== null && val.value !== undefined) {
-              return parseFloat(val.value);
+        // Helper to safely parse float values, handling potential object wrappers or non-numeric inputs
+        function safeParseFloat(val) {
+            if (typeof val === 'object' && val !== null) {
+                if (val.value !== undefined) {
+                    return parseFloat(val.value);
+                }
+                if (Array.isArray(val) && val.length === 1) {
+                    return parseFloat(val[0]);
+                }
+                // If it's an object but not in expected formats, return NaN
+                return NaN;
             }
             return parseFloat(val);
-          }
-          
+        }
+
+        async function fetchPredict(cur) {
           const payload = {
             t_1: safeParseFloat(cur.t_1),
             t_2: safeParseFloat(cur.t_2),
@@ -651,6 +655,14 @@
             gold: safeParseFloat(cur.gold),
             Nfarm: safeParseFloat(cur.Nfarm)
           };
+
+          // Check if any payload value is NaN, which indicates an issue with input data
+          for (const key in payload) {
+              if (isNaN(payload[key])) {
+                  throw new Error(`Input data for prediction contains non-numeric value for ${key}. Please check your inputs.`);
+              }
+          }
+
           const resp = await fetch(PREDICT_API_URL, {
             method: 'POST',
             headers: {
@@ -658,8 +670,28 @@
             },
             body: JSON.stringify({ instances: [payload] })
           });
+          
           const data = await resp.json();
-          return data.predictions[0];
+
+          // Ensure data.predictions is valid and contains at least one prediction
+          if (!data || !data.predictions || !Array.isArray(data.predictions) || data.predictions.length === 0) {
+              throw new Error("Invalid prediction response from API: " + JSON.stringify(data));
+          }
+          
+          let predictionResult = data.predictions[0];
+          // Explicitly handle if the prediction is an object like { "value": X } or an array like [X]
+          if (typeof predictionResult === 'object' && predictionResult !== null && predictionResult.value !== undefined) {
+              predictionResult = predictionResult.value;
+          } else if (Array.isArray(predictionResult) && predictionResult.length === 1) {
+              predictionResult = predictionResult[0];
+          }
+          
+          // Ensure the final prediction is a float
+          const finalPrediction = parseFloat(predictionResult);
+          if (isNaN(finalPrediction)) {
+              throw new Error("Prediction result is not a valid number: " + JSON.stringify(data.predictions[0]));
+          }
+          return finalPrediction; // Always return a number
         }
 
         function renderForecastChart() {
@@ -676,7 +708,7 @@
                     lastMonth = m;
                 }
             }
-            const labels = [], data = [latestInitialInputs.t_1];
+            const labels = [], data = [latestInitialInputs.t_1]; // Start chart data with the initial S&P 500 value
             latestForecastResults.forEach((v, i) => {
                 let year = lastYear;
                 let month = lastMonth + i + 1;
@@ -743,8 +775,12 @@
                 const init = {};
                 let missing = [];
                 for (let [k,v] of formData.entries()) {
-                    if (!v || isNaN(v)) missing.push(modelFeatureNames[k] || k);
-                    init[k] = +v;
+                    // Ensure all initial inputs are numbers
+                    const parsedValue = parseFloat(v);
+                    if (isNaN(parsedValue)) {
+                        missing.push(modelFeatureNames[k] || k);
+                    }
+                    init[k] = parsedValue;
                 }
                 if (missing.length > 0) {
                     showNotification('請填寫所有有效的初始數值：' + missing.join('、'), 'error');
@@ -762,20 +798,28 @@
 
                 try {
                     for (let i=0; i<months; i++) {
-                        // 清洗所有欄位，確保都是 float
+                        // Ensure all current values in 'cur' are numbers before sending to fetchPredict
                         Object.keys(cur).forEach(k => {
-                            if (typeof cur[k] === 'object' && cur[k] !== null) {
-                                cur[k] = parseFloat(cur[k].value || cur[k].data || 0);
-                            } else {
-                                cur[k] = parseFloat(cur[k]);
+                            cur[k] = safeParseFloat(cur[k]);
+                            if (isNaN(cur[k])) {
+                                throw new Error(`Internal error: Non-numeric value found in 'cur' object for key: ${k}`);
                             }
                         });
-                        // 送給 fetchPredict 前直接傳物件
-                        const pred = await fetchPredict(cur); // 直接傳 cur，不是 { ...cur }
+
+                        const pred = await fetchPredict(cur); // pred is now guaranteed to be a number
+                        
+                        // Check for NaN prediction before using it
+                        if (isNaN(pred)) {
+                            showNotification('模型返回了無效的預測值 (NaN)。請檢查輸入數據或模型。', 'error');
+                            break; // Stop forecasting if an invalid prediction occurs
+                        }
+
                         latestForecastResults.push(pred);
+                        
                         // ① 更新 lag 變數
-                        cur.t_2 = parseFloat(cur.t_1);
-                        cur.t_1 = parseFloat(pred);
+                        cur.t_2 = cur.t_1; // cur.t_1 is already a number
+                        cur.t_1 = pred; // pred is already a number
+                        
                         // ② macro features 緩慢往 1月的值靠攏（90% 當前 + 10% 1月），確保都是數字
                         MACRO_KEYS.forEach(k => {
                             cur[k] = parseFloat(cur[k]) * 0.9 + parseFloat(macroBase[k]) * 0.1;
