@@ -628,70 +628,62 @@
         // Helper to safely parse float values, handling potential object wrappers or non-numeric inputs
         function safeParseFloat(val) {
             if (typeof val === 'object' && val !== null) {
-                if (val.value !== undefined) {
-                    return parseFloat(val.value);
-                }
-                if (Array.isArray(val) && val.length === 1) {
-                    return parseFloat(val[0]);
-                }
-                // If it's an object but not in expected formats, return NaN
+                if (val.value !== undefined) return parseFloat(val.value);
+                if (Array.isArray(val) && val.length === 1) return parseFloat(val[0]);
                 return NaN;
             }
             return parseFloat(val);
         }
 
         async function fetchPredict(cur) {
-          const payload = {
-            t_1: safeParseFloat(cur.t_1),
-            t_2: safeParseFloat(cur.t_2),
-            Us_Dollar_Index: safeParseFloat(cur.Us_Dollar_Index),
-            US10YY: safeParseFloat(cur.US10YY),
-            US2YY: safeParseFloat(cur.US2YY),
-            Unemployment_Rate: safeParseFloat(cur.Unemployment_Rate),
-            CPI: safeParseFloat(cur.CPI),
-            PMI_Index: safeParseFloat(cur.PMI_Index),
-            VIX_Index: safeParseFloat(cur.VIX_Index),
-            EFFR: safeParseFloat(cur.EFFR),
-            gold: safeParseFloat(cur.gold),
-            Nfarm: safeParseFloat(cur.Nfarm)
-          };
+            const payload = {
+                t_1: safeParseFloat(cur.t_1),
+                t_2: safeParseFloat(cur.t_2),
+                Us_Dollar_Index: safeParseFloat(cur.Us_Dollar_Index),
+                US10YY: safeParseFloat(cur.US10YY),
+                US2YY: safeParseFloat(cur.US2YY),
+                Unemployment_Rate: safeParseFloat(cur.Unemployment_Rate),
+                CPI: safeParseFloat(cur.CPI),
+                PMI_Index: safeParseFloat(cur.PMI_Index),
+                VIX_Index: safeParseFloat(cur.VIX_Index),
+                EFFR: safeParseFloat(cur.EFFR),
+                gold: safeParseFloat(cur.gold),
+                Nfarm: safeParseFloat(cur.Nfarm)
+            };
 
-          // 檢查數值是否有效
-          for (const key in payload) {
-              if (isNaN(payload[key])) {
-                  throw new Error(`Input data for prediction contains non-numeric value for ${key}.`);
-              }
-          }
+            // 檢查所有欄位都是純數字
+            for (const key in payload) {
+                if (isNaN(payload[key])) {
+                    throw new Error(`Input data for prediction contains non-numeric value for ${key}.`);
+                }
+            }
 
-          const resp = await fetch(PREDICT_API_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ instances: [payload] })  // <- 重點：用帶欄位名稱的物件陣列
-          });
-          
-          const data = await resp.json();
+            // Debug: 輸出送出前的 payload
+            console.log('送出 Vertex AI payload:', JSON.stringify(payload));
 
-          // Ensure data.predictions is valid and contains at least one prediction
-          if (!data || !data.predictions || !Array.isArray(data.predictions) || data.predictions.length === 0) {
-              throw new Error("Invalid prediction response from API: " + JSON.stringify(data));
-          }
-          
-          let predictionResult = data.predictions[0];
-          // Explicitly handle if the prediction is an object like { "value": X } or an array like [X]
-          if (typeof predictionResult === 'object' && predictionResult !== null && predictionResult.value !== undefined) {
-              predictionResult = predictionResult.value;
-          } else if (Array.isArray(predictionResult) && predictionResult.length === 1) {
-              predictionResult = predictionResult[0];
-          }
-          
-          // Ensure the final prediction is a float
-          const finalPrediction = parseFloat(predictionResult);
-          if (isNaN(finalPrediction)) {
-              throw new Error("Prediction result is not a valid number: " + JSON.stringify(data.predictions[0]));
-          }
-          return finalPrediction; // Always return a number
+            const resp = await fetch(PREDICT_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ instances: [payload] })
+            });
+
+            const data = await resp.json();
+            if (!data || !data.predictions || !Array.isArray(data.predictions) || data.predictions.length === 0) {
+                throw new Error('Invalid prediction response from API: ' + JSON.stringify(data));
+            }
+
+            let predictionResult = data.predictions[0];
+            if (typeof predictionResult === 'object' && predictionResult !== null && predictionResult.value !== undefined) {
+                predictionResult = predictionResult.value;
+            } else if (Array.isArray(predictionResult) && predictionResult.length === 1) {
+                predictionResult = predictionResult[0];
+            }
+
+            const finalPrediction = parseFloat(predictionResult);
+            if (isNaN(finalPrediction)) {
+                throw new Error('Prediction result is not a valid number: ' + JSON.stringify(data.predictions[0]));
+            }
+            return finalPrediction;
         }
 
         function renderForecastChart() {
@@ -952,6 +944,7 @@
     </script>
 </body>
 </html>
+
 
 
 
