@@ -355,6 +355,7 @@
         };
         const initializedPages = new Set();
         let chartInstances = {};
+        let marketTrend = 'bullish'; // 'bullish' or 'bearish'
 
         // --- Helper Functions ---
         function createChart(ctx, chartInstance, type, data, options) {
@@ -581,6 +582,7 @@
             const backtestOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { title: { display: true, text: '模擬投資組合價值' } } } };
             chartInstances.backtestChart = createChart(backtestCtx, chartInstances.backtestChart, 'line', backtestData, backtestOptions);
             
+            renderMarketSignalCard();
             renderIndicatorCards();
 
             const generateSummaryBtn = document.getElementById('generate-summary-btn');
@@ -634,6 +636,32 @@
             });
             modalCloseBtn.addEventListener('click', () => modal.classList.remove('active'));
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+        }
+
+        function renderMarketSignalCard() {
+            const card = document.getElementById('market-signal-card');
+            if (!card) return;
+            if (marketTrend === 'bearish') {
+                card.className = 'card p-6 flex flex-col justify-center items-center bg-red-50 border-2 border-red-200';
+                card.innerHTML = `
+                    <h3 class="text-gray-500 text-sm font-medium">市場宏觀信號</h3>
+                    <div class="flex items-center gap-2 mt-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-3.707-8.707l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 9.414V13a1 1 0 11-2 0V9.414l-1.293 1.293a1 1 0 01-1.414-1.414z" clip-rule="evenodd" /></svg>
+                        <p class="text-3xl font-bold text-red-600">偏空</p>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">S&P 500 模型預測趨勢下跌</p>
+                `;
+            } else {
+                card.className = 'card p-6 flex flex-col justify-center items-center bg-green-50 border-2 border-green-200';
+                card.innerHTML = `
+                    <h3 class="text-gray-500 text-sm font-medium">市場宏觀信號</h3>
+                    <div class="flex items-center gap-2 mt-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd" /></svg>
+                        <p class="text-3xl font-bold text-green-600">偏多</p>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">S&P 500 模型預測趨勢向上</p>
+                `;
+            }
         }
 
         const PREDICT_API_URL = "https://my-vertex-proxy-1095766716155.asia-east1.run.app/predict";
@@ -763,6 +791,15 @@
             }, {responsive:true,maintainAspectRatio:false,scales:{x:{type:'category'}}});
             placeholder.classList.add('hidden');
             section.classList.remove('hidden');
+            // 判斷趨勢
+            const first = data[0];
+            const last = data[data.length - 1];
+            if (last < first * 0.95) {
+                marketTrend = 'bearish';
+            } else {
+                marketTrend = 'bullish';
+            }
+            renderMarketSignalCard();
         }
 
         function initMonthlyForecast() {
@@ -987,5 +1024,4 @@
     </script>
 </body>
 </html>
-
 
