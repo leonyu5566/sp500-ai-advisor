@@ -373,7 +373,7 @@
 
                 if (!response.ok) {
                     const errorText = await response.text();
-                    throw new Error(`後端服務錯誤: ${response.status} - ${errorText}`);
+                    throw new Error(`後端服務錯誤1: ${response.status} - ${errorText}`);
                 }
 
                 const result = await response.json();
