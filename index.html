@@ -605,18 +605,7 @@
             // 綁定 click 事件，確保手機/桌面都能觸發
             const btn = document.getElementById('generate-summary-btn');
             if (btn) {
-                // 1. 先定義好要執行的動作
-                const handler = async function(event) {
-                    // 2. 強制停止瀏覽器的預設行為(如捲動)和事件冒泡
-                    if (event) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    // 3. 檢查按鈕是否已被禁用，防止重複觸發
-                    if (btn.disabled) {
-                        return;
-                    }
-                    // 4. 執行您原本的邏輯
+                const handler = async function() {
                     const marketFocusContent = document.getElementById('market-focus-content');
                     marketFocusContent.innerHTML = '<p class="text-sm text-gray-500 animate-pulse">✨ 正在為您生成市場焦點分析...</p>';
                     btn.disabled = true;
@@ -633,10 +622,18 @@
                     marketFocusContent.innerHTML = html;
                     btn.disabled = false;
                 };
-                // 5. 移除可能存在的舊監聽器，然後綁定到 'touchstart' 事件
-                btn.removeEventListener('click', handler);
-                btn.removeEventListener('touchstart', handler);
-                btn.addEventListener('touchstart', handler, { passive: false });
+                btn.addEventListener('click', handler);
+            }
+
+            // Safari 終極修復：提升按鈕父容器的堆疊層級
+            try {
+                const summaryBtn = document.getElementById('generate-summary-btn');
+                if (summaryBtn && summaryBtn.parentElement) {
+                    summaryBtn.parentElement.style.position = 'relative';
+                    summaryBtn.parentElement.style.zIndex = '20';
+                }
+            } catch (e) {
+                console.error('Failed to apply z-index fix to button container:', e);
             }
         }
         
@@ -1070,6 +1067,5 @@
     </script>
 </body>
 </html>
-
 
 
