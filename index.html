@@ -1059,6 +1059,11 @@
             if (desktopBtn) desktopBtn.disabled = true;
             if (mobileBtn) mobileBtn.disabled = true;
             marketFocusContent.innerHTML = '<p class="text-sm text-gray-500 animate-pulse">✨ 正在為您生成市場焦點分析...</p>';
+            // 重新啟用內容區的 pointer-events，確保卷軸可用
+            if (marketFocusContent.parentElement) {
+                marketFocusContent.parentElement.style.pointerEvents = 'auto';
+            }
+            marketFocusContent.style.pointerEvents = 'auto';
             const prompt = `您是一位頂尖的金融市場分析師。請以繁體中文，為一位專業投資人總結今天最重要的市場焦點。您的分析應包含：1. **宏觀經濟:** 最新的關鍵經濟數據（如CPI, 就業報告）及其可能影響。2. **行業動態:** 特別是科技與半導體行業の重大新聞或趨勢。3. **分析師評級:** 任何知名分析師對重要公司或行業的評級變動。請以條列式、簡潔有力的方式呈現，並在最後給出一個總結性的「AI洞察」。`;
             const text = await callGeminiAPI(prompt);
             const lines = text.split('\n').filter(line => line.trim() !== '*' && line.trim() !== '');
