@@ -604,6 +604,16 @@
             // 綁定 click 事件，確保手機/桌面都能觸發
             const btn = document.getElementById('generate-summary-btn');
             if (btn) {
+                // 修復行動裝置被覆蓋層攔截點擊的問題
+                try {
+                    const contentWrapper = document.getElementById('market-focus-content').parentElement;
+                    if (contentWrapper) {
+                        contentWrapper.style.pointerEvents = 'none';
+                        btn.style.pointerEvents = 'auto';
+                    }
+                } catch (e) {
+                    console.error('Failed to apply mobile click fix:', e);
+                }
                 const handler = async function() {
                     const marketFocusContent = document.getElementById('market-focus-content');
                     marketFocusContent.innerHTML = '<p class="text-sm text-gray-500 animate-pulse">✨ 正在為您生成市場焦點分析...</p>';
@@ -1055,3 +1065,6 @@
     </script>
 </body>
 </html>
+
+
+
