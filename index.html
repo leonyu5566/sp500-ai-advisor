@@ -584,28 +584,33 @@
             const backtestData = { labels: Array.from({length: 12}, (_, i) => `2024-${i+1}`), datasets: [ { label: 'AI 模型 + 篩選', data: [100, 105, 108, 112, 115, 118, 122, 125, 128, 132, 135, 140], borderColor: '#16a34a', borderWidth: 3, tension: 0.1, pointRadius: 0 }, { label: '模型擇時', data: [100, 102, 104, 103, 106, 108, 110, 109, 112, 115, 116, 119], borderColor: '#3b82f6', borderWidth: 2, tension: 0.1, pointRadius: 0 }, { label: '買入並持有 S&P 500', data: [100, 101, 103, 100, 104, 105, 107, 104, 106, 109, 108, 112], borderColor: '#9ca3af', borderWidth: 2, tension: 0.1, pointRadius: 0, borderDash: [5, 5] } ] };
             const backtestOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { title: { display: true, text: '模擬投資組合價值' } } } };
             chartInstances.backtestChart = createChart(backtestCtx, chartInstances.backtestChart, 'line', backtestData, backtestOptions);
-            
             renderMarketSignalCard();
             renderIndicatorCards();
 
+            // 修正：每次都重新綁定市場焦點分析按鈕事件，避免 SPA 切換後失效
             const generateSummaryBtn = document.getElementById('generate-summary-btn');
             const marketFocusContent = document.getElementById('market-focus-content');
-            generateSummaryBtn.addEventListener('click', async () => {
-                marketFocusContent.innerHTML = '<p class="text-sm text-gray-500 animate-pulse">✨ 正在為您生成市場焦點分析...</p>';
-                generateSummaryBtn.disabled = true;
-                const prompt = `您是一位頂尖的金融市場分析師。請以繁體中文，為一位專業投資人總結今天最重要的市場焦點。您的分析應包含：1. **宏觀經濟:** 最新的關鍵經濟數據（如CPI, 就業報告）及其可能影響。2. **行業動態:** 特別是科技與半導體行業の重大新聞或趨勢。3. **分析師評級:** 任何知名分析師對重要公司或行業的評級變動。請以條列式、簡潔有力的方式呈現，並在最後給出一個總結性的「AI洞察」。`;
-                const text = await callGeminiAPI(prompt);
-                const lines = text.split('\n').filter(line => line.trim() !== '*' && line.trim() !== '');
-                let html = lines.map(line => {
-                    const trimmedLine = line.trim();
-                    if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) return `<p class="text-sm font-bold text-gray-800 mt-3">${trimmedLine.substring(2, trimmedLine.length - 2)}</p>`;
-                    if (/^\d\.\s/.test(trimmedLine)) return `<p class="text-sm font-semibold text-gray-700 mt-2">${trimmedLine}</p>`;
-                    if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) return `<p class="text-xs text-gray-600 mt-1 pl-2">&bull; ${trimmedLine.substring(2)}</p>`;
-                    return `<p class="text-xs text-gray-600 mt-1">${trimmedLine}</p>`;
-                }).join('');
-                marketFocusContent.innerHTML = html;
-                generateSummaryBtn.disabled = false;
-            });
+            if (generateSummaryBtn) {
+                // 先移除所有舊的 click 事件
+                const newBtn = generateSummaryBtn.cloneNode(true);
+                generateSummaryBtn.parentNode.replaceChild(newBtn, generateSummaryBtn);
+                newBtn.addEventListener('click', async () => {
+                    marketFocusContent.innerHTML = '<p class="text-sm text-gray-500 animate-pulse">✨ 正在為您生成市場焦點分析...</p>';
+                    newBtn.disabled = true;
+                    const prompt = `您是一位頂尖的金融市場分析師。請以繁體中文，為一位專業投資人總結今天最重要的市場焦點。您的分析應包含：1. **宏觀經濟:** 最新的關鍵經濟數據（如CPI, 就業報告）及其可能影響。2. **行業動態:** 特別是科技與半導體行業の重大新聞或趨勢。3. **分析師評級:** 任何知名分析師對重要公司或行業的評級變動。請以條列式、簡潔有力的方式呈現，並在最後給出一個總結性的「AI洞察」。`;
+                    const text = await callGeminiAPI(prompt);
+                    const lines = text.split('\n').filter(line => line.trim() !== '*' && line.trim() !== '');
+                    let html = lines.map(line => {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) return `<p class=\"text-sm font-bold text-gray-800 mt-3\">${trimmedLine.substring(2, trimmedLine.length - 2)}</p>`;
+                        if (/^\d\.\s/.test(trimmedLine)) return `<p class=\"text-sm font-semibold text-gray-700 mt-2\">${trimmedLine}</p>`;
+                        if (trimmedLine.startsWith('- ') || trimmedLine.startsWith('* ')) return `<p class=\"text-xs text-gray-600 mt-1 pl-2\">&bull; ${trimmedLine.substring(2)}</p>`;
+                        return `<p class=\"text-xs text-gray-600 mt-1\">${trimmedLine}</p>`;
+                    }).join('');
+                    marketFocusContent.innerHTML = html;
+                    newBtn.disabled = false;
+                });
+            }
         }
         
         function renderIndicatorCards() {
