@@ -601,7 +601,7 @@
             renderMarketSignalCard();
             renderIndicatorCards();
 
-            // 綁定 click、pointerup、touchend，確保手機/桌面都能觸發
+            // 綁定 click 事件，確保手機/桌面都能觸發
             const btn = document.getElementById('generate-summary-btn');
             if (btn) {
                 const handler = async function() {
@@ -621,8 +621,7 @@
                     marketFocusContent.innerHTML = html;
                     btn.disabled = false;
                 };
-                ['click', 'pointerup', 'touchend'].forEach(evt => btn.removeEventListener(evt, handler));
-                ['click', 'pointerup', 'touchend'].forEach(evt => btn.addEventListener(evt, handler, { passive: true }));
+                btn.addEventListener('click', handler);
             }
         }
         
@@ -1056,7 +1055,3 @@
     </script>
 </body>
 </html>
-
-
-
-
