@@ -126,6 +126,8 @@
             z-index: 1000 !important;
             pointer-events: all !important;
             touch-action: manipulation;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
         }
         #market-focus-content {
             pointer-events: none;
@@ -221,7 +223,7 @@
                     <div class="card p-6 flex flex-col">
                         <div class="flex-shrink-0 flex justify-between items-center">
                             <h3 class="text-gray-500 text-sm font-medium">市場焦點(AI 快篩)</h3>
-                            <button id="generate-summary-btn" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200 transition disabled:bg-gray-200 disabled:cursor-not-allowed">
+                            <button id="generate-summary-btn-desktop" class="hidden lg:flex text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full hover:bg-blue-200 transition disabled:bg-gray-200 disabled:cursor-not-allowed">
                                 <span class="flex items-center gap-1">✨ 生成今日分析</span>
                             </button>
                         </div>
@@ -600,7 +602,7 @@
             renderIndicatorCards();
 
             // 綁定 click 事件，確保手機/桌面都能觸發
-            const btn = document.getElementById('generate-summary-btn');
+            const btn = document.getElementById('generate-summary-btn-desktop');
             if (btn) {
                 const handler = async function() {
                     const marketFocusContent = document.getElementById('market-focus-content');
@@ -620,17 +622,6 @@
                     btn.disabled = false;
                 };
                 btn.addEventListener('click', handler);
-            }
-
-            // Safari 終極修復：提升按鈕父容器的堆疊層級
-            try {
-                const summaryBtn = document.getElementById('generate-summary-btn');
-                if (summaryBtn && summaryBtn.parentElement) {
-                    summaryBtn.parentElement.style.position = 'relative';
-                    summaryBtn.parentElement.style.zIndex = '20';
-                }
-            } catch (e) {
-                console.error('Failed to apply z-index fix to button container:', e);
             }
         }
         
@@ -1064,5 +1055,4 @@
     </script>
 </body>
 </html>
-
 
